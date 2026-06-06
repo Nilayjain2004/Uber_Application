@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RideX — Urban Mobility</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<!-- ──────────────── SPLASH / AUTH ──────────────── -->
+<div id="auth-screen" class="screen active">
+    <div class="auth-bg">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="grid-lines"></div>
+    </div>
+
+    <header class="brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-name">RideX</span>
+    </header>
+
+    <div class="auth-card">
+        <div class="tab-row">
+            <button class="tab active" data-tab="login">Login</button>
+            <button class="tab" data-tab="signup">Rider Sign Up</button>
+            <button class="tab" data-tab="driver-signup">Driver Sign Up</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div class="tab-panel active" id="tab-login">
+            <h2>Welcome back</h2>
+            <p class="sub">Sign in to continue your ride</p>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com" />
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" />
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">Continue →</button>
+            <div id="login-error" class="error-msg"></div>
+        </div>
+
+        <!-- SIGNUP -->
+        <div class="tab-panel" id="tab-signup">
+            <h2>Create account</h2>
+            <p class="sub">Join the network</p>
+            <div class="field-row">
+                <div class="field">
+                    <label>First Name</label>
+                    <input type="text" id="signup-fname" placeholder="Alex" />
+                </div>
+                <div class="field">
+                    <label>Last Name</label>
+                    <input type="text" id="signup-lname" placeholder="Rider" />
+                </div>
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="signup-email" placeholder="you@example.com" />
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="••••••••" />
+            </div>
+            <div class="field">
+                <label>Phone</label>
+                <input type="tel" id="signup-phone" placeholder="+91 98765 43210" />
+            </div>
+            <button class="btn-primary" onclick="handleSignup()">Create Account →</button>
+            <div id="signup-error" class="error-msg"></div>
+        </div>
+
+        <!-- DRIVER SIGNUP -->
+        <div class="tab-panel" id="tab-driver-signup">
+            <h2>Driver registration</h2>
+            <p class="sub">Create your driver account</p>
+            <div class="field-row">
+                <div class="field">
+                    <label>First Name</label>
+                    <input type="text" id="driver-signup-fname" placeholder="Alex" />
+                </div>
+                <div class="field">
+                    <label>Last Name</label>
+                    <input type="text" id="driver-signup-lname" placeholder="Driver" />
+                </div>
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="driver-signup-email" placeholder="driver@example.com" />
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="driver-signup-password" placeholder="password" />
+            </div>
+            <div class="field">
+                <label>Vehicle Number</label>
+                <input type="text" id="driver-signup-vehicle" placeholder="MP09AB1234" />
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label>Current Latitude</label>
+                    <input type="text" id="driver-signup-lat" placeholder="22.7196" />
+                </div>
+                <div class="field">
+                    <label>Current Longitude</label>
+                    <input type="text" id="driver-signup-lng" placeholder="75.8577" />
+                </div>
+            </div>
+            <button class="btn-primary" onclick="handleDriverSignup()">Create Driver Account</button>
+            <div id="driver-signup-error" class="error-msg"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ──────────────── RIDER DASHBOARD ──────────────── -->
+<div id="rider-screen" class="screen">
+    <nav class="topnav">
+        <div class="nav-brand"><span class="brand-icon small">⬡</span> RideX</div>
+        <div class="nav-actions">
+            <span class="role-badge rider">Rider</span>
+            <button class="icon-btn" onclick="goProfile('rider')" title="Profile">👤</button>
+            <button class="icon-btn" onclick="logout()" title="Logout">⏻</button>
+        </div>
+    </nav>
+
+    <div class="dash-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <button class="side-btn active" data-panel="request">🚗 Request Ride</button>
+            <button class="side-btn" data-panel="my-rides">📋 My Rides</button>
+            <button class="side-btn" data-panel="profile">👤 Profile</button>
+        </aside>
+
+        <!-- Panels -->
+        <main class="panel-area">
+
+            <!-- REQUEST RIDE -->
+            <div class="panel active" id="panel-request">
+                <div class="panel-header">
+                    <h2>Book a Ride</h2>
+                    <p>Where are you headed today?</p>
+                </div>
+                <div class="map-placeholder">
+                    <div class="map-inner">
+                        <div class="map-pin pickup">📍</div>
+                        <div class="map-pin dropoff">🏁</div>
+                        <svg class="route-line" viewBox="0 0 300 200"><path d="M60,160 Q150,80 240,40" stroke="var(--accent)" stroke-width="3" fill="none" stroke-dasharray="8,4"/></svg>
+                    </div>
+                    <span class="map-label">Live map powered by backend</span>
+                </div>
+                <div class="ride-form">
+                    <div class="field">
+                        <label>📍 Pickup Location</label>
+                        <input type="text" id="pickup-lat" placeholder="Latitude (e.g. 22.7196)" />
+                    </div>
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Pickup Lng</label>
+                            <input type="text" id="pickup-lng" placeholder="75.8577" />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>🏁 Dropoff Location</label>
+                        <input type="text" id="dropoff-lat" placeholder="Latitude (e.g. 22.7250)" />
+                    </div>
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Dropoff Lng</label>
+                            <input type="text" id="dropoff-lng" placeholder="75.8610" />
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="requestRide()">Find Driver →</button>
+                    <div id="ride-request-status" class="status-msg"></div>
+                </div>
+            </div>
+
+            <!-- MY RIDES (RIDER) -->
+            <div class="panel" id="panel-my-rides">
+                <div class="panel-header">
+                    <h2>My Rides</h2>
+                    <button class="btn-sm" onclick="loadRiderRides()">↻ Refresh</button>
+                </div>
+                <div id="rider-rides-list" class="rides-list">
+                    <div class="empty-state">Click Refresh to load your rides</div>
+                </div>
+                <div class="pagination">
+                    <button class="btn-sm" onclick="prevPage('rider')">← Prev</button>
+                    <span id="rider-page-info">Page 1</span>
+                    <button class="btn-sm" onclick="nextPage('rider')">Next →</button>
+                </div>
+            </div>
+
+            <!-- PROFILE (RIDER) -->
+            <div class="panel" id="panel-profile">
+                <div class="panel-header">
+                    <h2>My Profile</h2>
+                    <button class="btn-sm" onclick="loadRiderProfile()">↻ Refresh</button>
+                </div>
+                <div id="rider-profile-card" class="profile-card">
+                    <div class="empty-state">Click Refresh to load profile</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- ──────────────── DRIVER DASHBOARD ──────────────── -->
+<div id="driver-screen" class="screen">
+    <nav class="topnav driver-nav">
+        <div class="nav-brand"><span class="brand-icon small">⬡</span> RideX <span class="driver-tag">Driver</span></div>
+        <div class="nav-actions">
+            <span class="role-badge driver">Driver</span>
+            <button class="icon-btn" onclick="logout()" title="Logout">⏻</button>
+        </div>
+    </nav>
+
+    <div class="dash-layout">
+        <aside class="sidebar driver-sidebar">
+            <button class="side-btn" data-panel="d-requests">Ride Requests</button>
+            <button class="side-btn active" data-panel="d-rides">🚦 Active Rides</button>
+            <button class="side-btn" data-panel="d-history">📋 Ride History</button>
+            <button class="side-btn" data-panel="d-profile">👤 Profile</button>
+        </aside>
+
+        <main class="panel-area">
+
+            <!-- AVAILABLE RIDE REQUESTS -->
+            <div class="panel" id="panel-d-requests">
+                <div class="panel-header">
+                    <h2>Ride Requests</h2>
+                    <button class="btn-sm" onclick="loadDriverRideRequests()">Refresh</button>
+                </div>
+                <div id="driver-requests-list" class="rides-list">
+                    <div class="empty-state">Click Refresh to load pending requests</div>
+                </div>
+                <div class="pagination">
+                    <button class="btn-sm" onclick="prevPage('driverRequests')">Prev</button>
+                    <span id="driver-requests-page-info">Page 1</span>
+                    <button class="btn-sm" onclick="nextPage('driverRequests')">Next</button>
+                </div>
+            </div>
+
+            <!-- ACTIVE RIDES / ACTIONS -->
+            <div class="panel active" id="panel-d-rides">
+                <div class="panel-header">
+                    <h2>Ride Actions</h2>
+                    <p>Manage your current ride</p>
+                </div>
+
+                <div class="action-grid">
+                    <div class="action-card accept">
+                        <div class="action-icon">✅</div>
+                        <h3>Accept Ride</h3>
+                        <div class="field">
+                            <label>Ride Request ID</label>
+                            <input type="number" id="d-accept-id" placeholder="e.g. 42" />
+                        </div>
+                        <button class="btn-primary sm" onclick="acceptRide()">Accept</button>
+                        <div id="accept-status" class="status-msg"></div>
+                    </div>
+
+                    <div class="action-card start">
+                        <div class="action-icon">▶️</div>
+                        <h3>Start Ride</h3>
+                        <div class="field">
+                            <label>Ride ID</label>
+                            <input type="number" id="d-start-id" placeholder="e.g. 42" />
+                        </div>
+                        <div class="field">
+                            <label>OTP</label>
+                            <input type="text" id="d-otp" placeholder="4-digit OTP" maxlength="6" />
+                        </div>
+                        <button class="btn-primary sm" onclick="startRide()">Start</button>
+                        <div id="start-status" class="status-msg"></div>
+                    </div>
+
+                    <div class="action-card end">
+                        <div class="action-icon">🏁</div>
+                        <h3>End Ride</h3>
+                        <div class="field">
+                            <label>Ride ID</label>
+                            <input type="number" id="d-end-id" placeholder="e.g. 7" />
+                        </div>
+                        <button class="btn-primary sm" onclick="endRide()">End Ride</button>
+                        <div id="end-status" class="status-msg"></div>
+                    </div>
+
+                    <div class="action-card cancel">
+                        <div class="action-icon">❌</div>
+                        <h3>Cancel Ride</h3>
+                        <div class="field">
+                            <label>Ride ID</label>
+                            <input type="number" id="d-cancel-id" placeholder="e.g. 7" />
+                        </div>
+                        <button class="btn-danger sm" onclick="cancelRideDriver()">Cancel</button>
+                        <div id="d-cancel-status" class="status-msg"></div>
+                    </div>
+
+                    <div class="action-card rate">
+                        <div class="action-icon">⭐</div>
+                        <h3>Rate Rider</h3>
+                        <div class="field">
+                            <label>Ride ID</label>
+                            <input type="number" id="d-rate-ride-id" placeholder="e.g. 7" />
+                        </div>
+                        <div class="field">
+                            <label>Rating (1-5)</label>
+                            <div class="star-row" id="d-star-row">
+                                <span class="star" data-val="1">★</span>
+                                <span class="star" data-val="2">★</span>
+                                <span class="star" data-val="3">★</span>
+                                <span class="star" data-val="4">★</span>
+                                <span class="star" data-val="5">★</span>
+                            </div>
+                            <input type="hidden" id="d-rating" value="0" />
+                        </div>
+                        <button class="btn-primary sm" onclick="rateRider()">Submit Rating</button>
+                        <div id="d-rate-status" class="status-msg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIDE HISTORY (DRIVER) -->
+            <div class="panel" id="panel-d-history">
+                <div class="panel-header">
+                    <h2>Ride History</h2>
+                    <button class="btn-sm" onclick="loadDriverRides()">↻ Refresh</button>
+                </div>
+                <div id="driver-rides-list" class="rides-list">
+                    <div class="empty-state">Click Refresh to load rides</div>
+                </div>
+                <div class="pagination">
+                    <button class="btn-sm" onclick="prevPage('driver')">← Prev</button>
+                    <span id="driver-page-info">Page 1</span>
+                    <button class="btn-sm" onclick="nextPage('driver')">Next →</button>
+                </div>
+            </div>
+
+            <!-- PROFILE (DRIVER) -->
+            <div class="panel" id="panel-d-profile">
+                <div class="panel-header">
+                    <h2>Driver Profile</h2>
+                    <button class="btn-sm" onclick="loadDriverProfile()">↻ Refresh</button>
+                </div>
+                <div id="driver-profile-card" class="profile-card">
+                    <div class="empty-state">Click Refresh to load profile</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- ──────────────── TOAST ──────────────── -->
+<!-- ADMIN DASHBOARD -->
+<div id="admin-screen" class="screen">
+    <nav class="topnav admin-nav">
+        <div class="nav-brand"><span class="brand-icon small">â¬¡</span> RideX <span class="admin-tag">Admin</span></div>
+        <div class="nav-actions">
+            <span class="role-badge admin">Admin</span>
+            <button class="icon-btn" onclick="logout()" title="Logout">â»</button>
+        </div>
+    </nav>
+
+    <div class="dash-layout">
+        <aside class="sidebar admin-sidebar">
+            <button class="side-btn active" data-panel="admin-onboard">Onboard Driver</button>
+        </aside>
+
+        <main class="panel-area">
+            <div class="panel active" id="panel-admin-onboard">
+                <div class="panel-header">
+                    <h2>Onboard Driver</h2>
+                    <p>Convert an existing rider account into a driver account.</p>
+                </div>
+
+                <div class="action-grid">
+                    <div class="action-card admin-card">
+                        <div class="action-icon">ID</div>
+                        <h3>Driver Access</h3>
+                        <div class="field">
+                            <label>User ID</label>
+                            <input type="number" id="admin-driver-user-id" placeholder="e.g. 10" />
+                        </div>
+                        <div class="field">
+                            <label>Vehicle Number</label>
+                            <input type="text" id="admin-driver-vehicle" placeholder="MP09AB1234" />
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Current Latitude</label>
+                                <input type="text" id="admin-driver-lat" placeholder="22.7196" />
+                            </div>
+                            <div class="field">
+                                <label>Current Longitude</label>
+                                <input type="text" id="admin-driver-lng" placeholder="75.8577" />
+                            </div>
+                        </div>
+                        <button class="btn-primary sm" onclick="onboardDriver()">Onboard Driver</button>
+                        <div id="admin-onboard-status" class="status-msg"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

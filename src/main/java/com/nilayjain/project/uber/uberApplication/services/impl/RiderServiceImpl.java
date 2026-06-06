@@ -10,6 +10,7 @@ import com.nilayjain.project.uber.uberApplication.entities.enums.RideStatus;
 import com.nilayjain.project.uber.uberApplication.exceptions.ResourceNotFoundException;
 import com.nilayjain.project.uber.uberApplication.repositories.RideRequestRepository;
 import com.nilayjain.project.uber.uberApplication.repositories.RiderRepository;
+import com.nilayjain.project.uber.uberApplication.repositories.UserRepository;
 import com.nilayjain.project.uber.uberApplication.services.DriverService;
 import com.nilayjain.project.uber.uberApplication.services.RatingService;
 import com.nilayjain.project.uber.uberApplication.services.RideService;
@@ -20,7 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class RiderServiceImpl implements RiderService {
+    private final UserRepository userRepository;
     // Methods implementation
 
     private final ModelMapper modelMapper;
@@ -40,8 +44,10 @@ public class RiderServiceImpl implements RiderService {
     private final RatingService ratingService;
     @Override
     @Transactional
+
     public RideRequestDto requestRide(RideRequestDto rideRequestDto) {
         Rider rider = getCurrentRider();
+
         RideRequest rideRequest = modelMapper.map(rideRequestDto, RideRequest.class);
         rideRequest.setRideRequestStatus(RideRequestStatus.PENDING);
         rideRequest.setRider(rider);
@@ -53,10 +59,13 @@ public class RiderServiceImpl implements RiderService {
 
         List<Driver> drivers = rideStrategyManager
                 .driverMatchingStrategies(rider.getRating()).findMatchingDriver(rideRequest);
-
+        System.out.println("Rider: " + rider);
+        System.out.println("Pickup: " + rideRequest.getPickupLocation());
+        System.out.println("Dropoff: " + rideRequest.getDropOffLocation());
         return modelMapper.map(savedRideRequest ,RideRequestDto.class);
 
     }
+
     @Override
     public RideDto cancelRide(Long rideId) {
         Rider rider = getCurrentRider();
@@ -114,12 +123,41 @@ public class RiderServiceImpl implements RiderService {
        return riderRepository.save(rider);
     }
 
-    @Override
-    public Rider getCurrentRider() {
-        User user =(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//    @Override
+//    public Rider getCurrentRider() {
+//        User user =(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//
+//        return riderRepository.findByUser(user).orElseThrow(()-> new ResourceNotFoundException(
+//                "Rider not associated with user with id: "+user.getId()
+//        ));
+//    }
+@Override
+public Rider getCurrentRider() {
 
-        return riderRepository.findByUser(user).orElseThrow(()-> new ResourceNotFoundException(
-                "Rider not associated with user with id: "+user.getId()
-        ));
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null || !authentication.isAuthenticated()) {
+        throw new RuntimeException("User not authenticated");
     }
+
+    Object principal = authentication.getPrincipal();
+
+    String email;
+
+    if (principal instanceof UserDetails userDetails) {
+        email = userDetails.getUsername();
+    } else {
+        email = principal.toString();
+    }
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "User not found with email: " + email
+            ));
+
+    return riderRepository.findByUser(user)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "Rider not associated with user id: " + user.getId()
+            ));
+}
 }

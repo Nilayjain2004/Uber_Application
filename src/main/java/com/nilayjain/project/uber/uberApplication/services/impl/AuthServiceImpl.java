@@ -1,6 +1,9 @@
 package com.nilayjain.project.uber.uberApplication.services.impl;
 
 import com.nilayjain.project.uber.uberApplication.dto.DriverDto;
+import com.nilayjain.project.uber.uberApplication.dto.DriverSignupDto;
+import com.nilayjain.project.uber.uberApplication.dto.OnboardDriverDto;
+import com.nilayjain.project.uber.uberApplication.dto.PointDto;
 import com.nilayjain.project.uber.uberApplication.dto.SignupDto;
 import com.nilayjain.project.uber.uberApplication.dto.UserDto;
 import com.nilayjain.project.uber.uberApplication.entities.Driver;
@@ -14,6 +17,7 @@ import com.nilayjain.project.uber.uberApplication.services.AuthService;
 import com.nilayjain.project.uber.uberApplication.services.DriverService;
 import com.nilayjain.project.uber.uberApplication.services.RiderService;
 import com.nilayjain.project.uber.uberApplication.services.WalletService;
+import com.nilayjain.project.uber.uberApplication.utils.GeometryUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -66,18 +70,60 @@ public class AuthServiceImpl implements AuthService {
         walletService.createNewWallet(savedUser);
         return modelMapper.map(savedUser,UserDto.class);
     }
+
     @Override
-    public DriverDto onboardNewDriver(Long userId , String vehicleId) {
+    @Transactional
+    public DriverDto signupDriver(DriverSignupDto driverSignupDto) {
+        User user = userRepository.findByEmail(driverSignupDto.getEmail()).orElse(null);
+        if(user != null)
+            throw new RuntimeConflictException("Cannot signup, User already exists with email "+driverSignupDto.getEmail());
+
+        if(driverSignupDto.getCurrentLatitude() == null || driverSignupDto.getCurrentLongitude() == null)
+            throw new RuntimeConflictException("Driver current latitude and longitude are required");
+
+        User mappedUser = new User();
+        mappedUser.setName(driverSignupDto.getName());
+        mappedUser.setEmail(driverSignupDto.getEmail());
+        mappedUser.setPassword(passwordEncoder.encode(driverSignupDto.getPassword()));
+        mappedUser.setRoles(Set.of(Role.DRIVER));
+        User savedUser = userRepository.save(mappedUser);
+
+        walletService.createNewWallet(savedUser);
+
+        Driver createDriver = Driver.builder()
+                .user(savedUser)
+                .rating(0.0)
+                .vehicleId(driverSignupDto.getVehicleId())
+                .available(true)
+                .currentLocation(GeometryUtil.createPoint(new PointDto(new double[]{
+                        driverSignupDto.getCurrentLongitude(),
+                        driverSignupDto.getCurrentLatitude()
+                })))
+                .build();
+
+        Driver savedDriver = driverService.createNewDriver(createDriver);
+        return modelMapper.map(savedDriver, DriverDto.class);
+    }
+
+    @Override
+    public DriverDto onboardNewDriver(Long userId , OnboardDriverDto onboardDriverDto) {
         User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found with is:"+ userId));
 
         if(user.getRoles().contains(Role.DRIVER))
             throw new RuntimeException("User with id "+userId+"is already an driver");
 
+        if(onboardDriverDto.getCurrentLatitude() == null || onboardDriverDto.getCurrentLongitude() == null)
+            throw new RuntimeConflictException("Driver current latitude and longitude are required");
+
         Driver createDriver = Driver.builder()
                 .user(user)
                 .rating(0.0)
-                .vehicleId(vehicleId)
+                .vehicleId(onboardDriverDto.getVehicleId())
                 .available(true)
+                .currentLocation(GeometryUtil.createPoint(new PointDto(new double[]{
+                        onboardDriverDto.getCurrentLongitude(),
+                        onboardDriverDto.getCurrentLatitude()
+                })))
                 .build();
         user.getRoles().add(Role.DRIVER);
         userRepository.save(user);

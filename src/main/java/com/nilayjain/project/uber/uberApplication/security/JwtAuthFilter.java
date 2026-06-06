@@ -55,4 +55,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             handlerExceptionResolver.resolveException(request, response, null, ex);
         }
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+
+        return path.startsWith("/api/auth") ||
+                path.equals("/") ||
+                path.equals("/index.html") ||
+                path.endsWith(".js") ||
+                path.endsWith(".css");
+    }
 }

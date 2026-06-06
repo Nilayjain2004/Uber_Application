@@ -22,17 +22,33 @@ public class JWTService {
         return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
+//    public String generateAccessToken(User user) {
+//        return Jwts.builder()
+//                .subject(user.getId().toString())
+//                .claim("email", user.getEmail())
+//                .claim("roles", user.getRoles().toString())
+//                .issuedAt(new Date())
+//                .expiration(new Date(System.currentTimeMillis() + 1000*60*10))
+//                .signWith(getSecretKey())
+//                .compact();
+//    }
+
     public String generateAccessToken(User user) {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
-                .claim("roles", user.getRoles().toString())
+                .claim(
+                        "roles",
+                        user.getRoles()
+                                .stream()
+                                .map(Enum::name)
+                                .toList()
+                )
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000*60*10))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
                 .signWith(getSecretKey())
                 .compact();
     }
-
     public String generateRefreshToken(User user) {
         return Jwts.builder()
                 .subject(user.getId().toString())

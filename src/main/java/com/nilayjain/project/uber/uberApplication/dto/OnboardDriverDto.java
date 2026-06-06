@@ -6,4 +6,6 @@ import lombok.Data;
 public class OnboardDriverDto
 {
     private String vehicleId;
+    private Double currentLatitude;
+    private Double currentLongitude;
 }
