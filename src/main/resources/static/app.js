@@ -32,7 +32,11 @@ function showScreen(id) {
 function setStatus(id, msg, color = '') {
   const el = document.getElementById(id);
   if (!el) return;
-  el.textContent = msg;
+  if (typeof msg === 'string' && msg.includes('<span class="spinner"></span>')) {
+    el.innerHTML = msg;
+  } else {
+    el.textContent = msg;
+  }
   el.style.color  = color || 'var(--accent2)';
 }
 async function api(method, path, body, auth = true) {
@@ -207,7 +211,7 @@ async function handleSignup() {
       throw new Error(getErrorMessage(result, response.status));
     }
 
-    alert("Account created successfully!");
+    showToast("Account created successfully. You can now sign in.", "success");
 
   } catch (err) {
     document.getElementById("signup-error").innerText = err.message;
@@ -245,7 +249,7 @@ async function handleDriverSignup() {
       currentLongitude
     }, false);
 
-    showToast("Driver account created. Please login.", "success");
+    showToast("Driver account created. Please sign in.", "success");
     document.querySelector('.tab[data-tab="login"]').click();
   } catch (err) {
     error.innerText = err.message;
@@ -311,7 +315,7 @@ function logout() {
   // go to login screen
   showScreen('auth-screen');
 
-  showToast('Logged out successfully.');
+  showToast('You have been signed out.');
 }
 
 /* ══════════════════════════════════════════
@@ -380,30 +384,30 @@ async function requestRide() {
     paymentMethod
   };
 
-  setStatus('ride-request-status', '<span class="spinner"></span> Finding you a driver…');
+  setStatus('ride-request-status', '<span class="spinner"></span> Creating your ride request...');
 
   try {
     const data = await api('POST', '/rider/requestRide', body);
 
     setStatus(
       'ride-request-status',
-      `✅ Ride #${data.id} requested! Status: ${data.rideRequestStatus || 'PENDING'}`
+      `Ride request #${data.id} created. Status: ${formatStatus(data.rideRequestStatus || 'PENDING')}.`
     );
 
-    showToast('Ride requested! Drivers have been notified.', 'success');
+    showToast('Ride request created. Nearby drivers can now accept it.', 'success');
 
   } catch (e) {
-    setStatus('ride-request-status', '❌ ' + e.message, 'var(--danger)');
+    setStatus('ride-request-status', e.message, 'var(--danger)');
   }
 }
 /* ── Rider: Cancel Ride ── */
 async function cancelRideRider(rideId) {
   try {
     await api('POST', `/rider/cancelRide/${rideId}`, null);
-    showToast('Ride cancelled.', '');
+    showToast('Ride cancelled.');
     loadRiderRides();
   } catch (e) {
-    showToast('Cancel failed: ' + e.message, 'error');
+    showToast('Unable to cancel ride: ' + e.message, 'error');
   }
 }
 
@@ -463,7 +467,7 @@ async function startRazorpayDemo(role) {
   }
 
   const paymentId = 'rzp_demo_' + Date.now();
-  setStatus(`${role}-wallet-status`, '<span class="spinner"></span> Opening Razorpay demo checkout...');
+  setStatus(`${role}-wallet-status`, '<span class="spinner"></span> Processing demo payment...');
 
   setTimeout(async () => {
     try {
@@ -472,8 +476,8 @@ async function startRazorpayDemo(role) {
         razorpayPaymentId: paymentId
       });
       amountInput.value = '';
-      setStatus(`${role}-wallet-status`, `Demo payment successful. Payment ID: ${paymentId}`);
-      showToast('Wallet updated with demo Razorpay payment.', 'success');
+      setStatus(`${role}-wallet-status`, `Payment successful. Reference: ${paymentId}`);
+      showToast('Wallet balance updated.', 'success');
       loadWallet(role);
     } catch (e) {
       setStatus(`${role}-wallet-status`, e.message, 'var(--danger)');
@@ -516,9 +520,9 @@ function goProfile(role) {
 async function rateDriverFromPanel(rideId, rating) {
   try {
     await api('POST', '/rider/rateDriver', { rideId, rating });
-    showToast('Driver rated! ⭐', 'success');
+    showToast('Driver rating submitted.', 'success');
   } catch (e) {
-    showToast('Rating failed: ' + e.message, 'error');
+    showToast('Unable to submit rating: ' + e.message, 'error');
   }
 }
 
@@ -527,14 +531,14 @@ async function rateDriverFromPanel(rideId, rating) {
 ══════════════════════════════════════════ */
 async function acceptRide(rideRequestId = null) {
   const id = rideRequestId || document.getElementById('d-accept-id').value;
-  if (!id) { setStatus('accept-status', 'Enter ride request ID', 'var(--danger)'); return; }
+  if (!id) { setStatus('accept-status', 'Enter a ride request ID.', 'var(--danger)'); return; }
   try {
     const d = await api('POST', `/drivers/acceptRide/${id}`, null);
-    setStatus('accept-status', `Ride #${d.id} accepted. Ask the rider for OTP to start.`);
-    showToast('Ride accepted!', 'success');
+    setStatus('accept-status', `Ride #${d.id} accepted. Ask the rider for the OTP to start the trip.`);
+    showToast('Ride accepted.', 'success');
     loadDriverRideRequests();
   } catch (e) {
-    setStatus('accept-status', '❌ ' + e.message, 'var(--danger)');
+    setStatus('accept-status', e.message, 'var(--danger)');
   }
 }
 
@@ -555,51 +559,51 @@ async function loadDriverRideRequests() {
 async function startRide() {
   const id  = document.getElementById('d-start-id').value;
   const otp = document.getElementById('d-otp').value;
-  if (!id || !otp) { setStatus('start-status', 'Enter both ID and OTP', 'var(--danger)'); return; }
+  if (!id || !otp) { setStatus('start-status', 'Enter both ride ID and OTP.', 'var(--danger)'); return; }
   try {
     const d = await api('POST', `/drivers/startRide/${id}`, { otp });
-    setStatus('start-status', `▶️ Ride #${d.id} started!`);
-    showToast('Ride started! Drive safe. 🚗', 'success');
+    setStatus('start-status', `Ride #${d.id} started successfully.`);
+    showToast('Ride started.', 'success');
   } catch (e) {
-    setStatus('start-status', '❌ ' + e.message, 'var(--danger)');
+    setStatus('start-status', e.message, 'var(--danger)');
   }
 }
 
 async function endRide() {
   const id = document.getElementById('d-end-id').value;
-  if (!id) { setStatus('end-status', 'Enter ride ID', 'var(--danger)'); return; }
+  if (!id) { setStatus('end-status', 'Enter a ride ID.', 'var(--danger)'); return; }
   try {
     const d = await api('POST', `/drivers/endRide/${id}`, null);
-    setStatus('end-status', `🏁 Ride #${d.id} ended! Fare: ₹${d.fare || '—'}`);
-    showToast('Ride completed! 🏁', 'success');
+    setStatus('end-status', `Ride #${d.id} completed. Fare: Rs ${d.fare || '--'}.`);
+    showToast('Ride completed successfully.', 'success');
   } catch (e) {
-    setStatus('end-status', '❌ ' + e.message, 'var(--danger)');
+    setStatus('end-status', e.message, 'var(--danger)');
   }
 }
 
 async function cancelRideDriver() {
   const id = document.getElementById('d-cancel-id').value;
-  if (!id) { setStatus('d-cancel-status', 'Enter ride ID', 'var(--danger)'); return; }
+  if (!id) { setStatus('d-cancel-status', 'Enter a ride ID.', 'var(--danger)'); return; }
   try {
     await api('POST', `/drivers/cancelRide/${id}`, null);
-    setStatus('d-cancel-status', '❌ Ride cancelled.');
-    showToast('Ride cancelled.', '');
+    setStatus('d-cancel-status', 'Ride cancelled successfully.');
+    showToast('Ride cancelled.');
   } catch (e) {
-    setStatus('d-cancel-status', '❌ ' + e.message, 'var(--danger)');
+    setStatus('d-cancel-status', e.message, 'var(--danger)');
   }
 }
 
 async function rateRider() {
   const rideId = document.getElementById('d-rate-ride-id').value;
   const rating = parseInt(document.getElementById('d-rating').value);
-  if (!rideId) { setStatus('d-rate-status', 'Enter ride ID', 'var(--danger)'); return; }
-  if (!rating) { setStatus('d-rate-status', 'Select a star rating', 'var(--danger)'); return; }
+  if (!rideId) { setStatus('d-rate-status', 'Enter a ride ID.', 'var(--danger)'); return; }
+  if (!rating) { setStatus('d-rate-status', 'Select a rating.', 'var(--danger)'); return; }
   try {
     await api('POST', '/drivers/rateRider', { rideId, rating });
-    setStatus('d-rate-status', `⭐ Rider rated ${rating}/5`);
-    showToast('Rider rated!', 'success');
+    setStatus('d-rate-status', `Rider rating submitted: ${rating}/5.`);
+    showToast('Rider rating submitted.', 'success');
   } catch (e) {
-    setStatus('d-rate-status', '❌ ' + e.message, 'var(--danger)');
+    setStatus('d-rate-status', e.message, 'var(--danger)');
   }
 }
 
@@ -637,7 +641,7 @@ async function onboardDriver() {
   const currentLongitude = parseFloat(document.getElementById('admin-driver-lng').value);
 
   if (!userId || !vehicleId || Number.isNaN(currentLatitude) || Number.isNaN(currentLongitude)) {
-    setStatus('admin-onboard-status', 'Enter user ID, vehicle number, latitude, and longitude', 'var(--danger)');
+    setStatus('admin-onboard-status', 'Enter user ID, vehicle number, latitude, and longitude.', 'var(--danger)');
     return;
   }
 
@@ -648,7 +652,7 @@ async function onboardDriver() {
       currentLongitude
     });
     const name = driver.user?.name || `User #${userId}`;
-    setStatus('admin-onboard-status', `Driver onboarded: ${name} (${driver.vehicleId})`);
+    setStatus('admin-onboard-status', `Driver onboarded successfully: ${name} (${driver.vehicleId}).`);
     showToast('Driver onboarded successfully.', 'success');
   } catch (e) {
     setStatus('admin-onboard-status', e.message, 'var(--danger)');
@@ -677,7 +681,7 @@ function renderRideRequestsList(container, requests) {
           ${payment ? `<div style="font-size:0.8rem;color:var(--sub);margin-top:2px">${payment}</div>` : ''}
           <button class="btn-sm" onclick="acceptRide(${request.id})" style="margin-top:8px">Accept</button>
         </div>
-        <span class="ride-status status-REQUESTED">${request.rideRequestStatus || 'PENDING'}</span>
+        <span class="ride-status status-REQUESTED">${formatStatus(request.rideRequestStatus || 'PENDING')}</span>
       </div>`;
   }).join('');
 }
@@ -711,7 +715,7 @@ function renderRidesList(container, rides, who) {
           ${payment ? `<div style="font-size:0.8rem;color:var(--sub);margin-top:2px">${payment}</div>` : ''}
           ${extra}
         </div>
-        <span class="ride-status ${statusClass}">${ride.rideStatus || 'UNKNOWN'}</span>
+        <span class="ride-status ${statusClass}">${formatStatus(ride.rideStatus || 'UNKNOWN')}</span>
       </div>`;
   }).join('');
 }
@@ -725,6 +729,13 @@ function formatPoint(point) {
 function formatPaymentMethod(paymentMethod) {
   if (paymentMethod === 'WALLET') return 'Wallet';
   return 'Cash';
+}
+
+function formatStatus(status) {
+  return String(status || '')
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function buildProfileCard(d, type) {
