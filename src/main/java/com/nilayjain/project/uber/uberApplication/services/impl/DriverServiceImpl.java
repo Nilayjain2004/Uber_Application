@@ -55,6 +55,7 @@ public class DriverServiceImpl implements DriverService {
 
 
     @Override
+    @Transactional
     public RideDto cancelRide(Long rideId) {
         Ride ride =rideService.getRideById(rideId);
 
@@ -72,6 +73,7 @@ public class DriverServiceImpl implements DriverService {
         return modelMapper.map(ride, RideDto.class);
     }
     @Override
+    @Transactional
     public RideDto startRide(Long rideId ,String otp) {
         Ride ride = rideService.getRideById(rideId);
         Driver driver = getCurrentDriver();
@@ -97,6 +99,7 @@ public class DriverServiceImpl implements DriverService {
         return modelMapper.map(savedRide,RideDto.class);
     }
     @Override
+    @Transactional
     public RideDto endRide(Long rideId) {
         Ride ride = rideService.getRideById(rideId);
         Driver driver = getCurrentDriver();
