@@ -363,7 +363,7 @@ async function requestRide() {
   const pickupLng  = parseFloat(document.getElementById('pickup-lng').value);
   const dropoffLat = parseFloat(document.getElementById('dropoff-lat').value);
   const dropoffLng = parseFloat(document.getElementById('dropoff-lng').value);
-  const paymentMethod = document.getElementById('payment-method').value || 'CASH';
+  const paymentMethod = document.getElementById('payment-method').value || 'WALLET';
 
   if ([pickupLat, pickupLng, dropoffLat, dropoffLng].some(isNaN)) {
     setStatus('ride-request-status', 'Please enter valid coordinates.', 'var(--danger)');

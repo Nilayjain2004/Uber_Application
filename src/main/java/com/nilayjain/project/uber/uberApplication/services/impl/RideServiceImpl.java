@@ -5,6 +5,7 @@ import com.nilayjain.project.uber.uberApplication.entities.Driver;
 import com.nilayjain.project.uber.uberApplication.entities.Ride;
 import com.nilayjain.project.uber.uberApplication.entities.RideRequest;
 import com.nilayjain.project.uber.uberApplication.entities.Rider;
+import com.nilayjain.project.uber.uberApplication.entities.enums.PaymentMethod;
 import com.nilayjain.project.uber.uberApplication.entities.enums.RideRequestStatus;
 import com.nilayjain.project.uber.uberApplication.entities.enums.RideStatus;
 import com.nilayjain.project.uber.uberApplication.exceptions.ResourceNotFoundException;
@@ -43,6 +44,9 @@ public class RideServiceImpl implements RideService {
         Ride ride = modelMapper.map(rideRequest, Ride.class);
         ride.setRideStatus(RideStatus.CONFIRMED);
         ride.setDriver(driver);
+        ride.setRider(rideRequest.getRider());
+        ride.setFare(rideRequest.getFare());
+        ride.setPaymentMethod(rideRequest.getPaymentMethod() == null ? PaymentMethod.CASH : rideRequest.getPaymentMethod());
         ride.setOtp(generateRandomOTP());
         ride.setId(null);
 

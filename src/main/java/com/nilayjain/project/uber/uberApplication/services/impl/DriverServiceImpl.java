@@ -112,7 +112,7 @@ public class DriverServiceImpl implements DriverService {
         Ride savedRide = rideService.updateRideStatus(ride,RideStatus.ENDES);
         updateDriverAvailability(driver,true);
 
-        paymentService.processPayment(ride);
+        paymentService.processPayment(savedRide);
         return modelMapper.map(savedRide,RideDto.class);
     }
     @Override
