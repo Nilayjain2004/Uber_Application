@@ -5,6 +5,7 @@ import com.nilayjain.project.uber.uberApplication.dto.RideDto;
 import com.nilayjain.project.uber.uberApplication.dto.RideRequestDto;
 import com.nilayjain.project.uber.uberApplication.dto.RiderDto;
 import com.nilayjain.project.uber.uberApplication.entities.*;
+import com.nilayjain.project.uber.uberApplication.entities.enums.PaymentMethod;
 import com.nilayjain.project.uber.uberApplication.entities.enums.RideRequestStatus;
 import com.nilayjain.project.uber.uberApplication.entities.enums.RideStatus;
 import com.nilayjain.project.uber.uberApplication.exceptions.ResourceNotFoundException;
@@ -51,6 +52,9 @@ public class RiderServiceImpl implements RiderService {
         RideRequest rideRequest = modelMapper.map(rideRequestDto, RideRequest.class);
         rideRequest.setRideRequestStatus(RideRequestStatus.PENDING);
         rideRequest.setRider(rider);
+        if (rideRequest.getPaymentMethod() == null) {
+            rideRequest.setPaymentMethod(PaymentMethod.CASH);
+        }
 
         Double fare  = rideStrategyManager.rideFareCalculationStrategies().calculateFare(rideRequest);
         rideRequest.setFare(fare);

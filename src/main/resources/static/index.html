@@ -175,6 +175,13 @@
                             <input type="text" id="dropoff-lng" placeholder="75.8610" />
                         </div>
                     </div>
+                    <div class="field">
+                        <label>Payment Method</label>
+                        <select id="payment-method">
+                            <option value="CASH">Cash</option>
+                            <option value="WALLET">Wallet</option>
+                        </select>
+                    </div>
                     <button class="btn-primary" onclick="requestRide()">Find Driver →</button>
                     <div id="ride-request-status" class="status-msg"></div>
                 </div>

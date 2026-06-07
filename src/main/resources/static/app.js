@@ -361,6 +361,7 @@ async function requestRide() {
   const pickupLng  = parseFloat(document.getElementById('pickup-lng').value);
   const dropoffLat = parseFloat(document.getElementById('dropoff-lat').value);
   const dropoffLng = parseFloat(document.getElementById('dropoff-lng').value);
+  const paymentMethod = document.getElementById('payment-method').value || 'CASH';
 
   if ([pickupLat, pickupLng, dropoffLat, dropoffLng].some(isNaN)) {
     setStatus('ride-request-status', 'Please enter valid coordinates.', 'var(--danger)');
@@ -374,7 +375,7 @@ async function requestRide() {
     dropOffLocation: {
       coordinates: [dropoffLng, dropoffLat] // 👈 FIX HERE
     },
-    paymentMethod: "CASH"
+    paymentMethod
   };
 
   setStatus('ride-request-status', '<span class="spinner"></span> Finding you a driver…');
@@ -589,6 +590,7 @@ function renderRideRequestsList(container, requests) {
     const from = formatPoint(request.pickupLocation);
     const to = formatPoint(request.dropOffLocation);
     const fare = request.fare ? `Fare: Rs ${request.fare}` : '';
+    const payment = request.paymentMethod ? `Payment: ${formatPaymentMethod(request.paymentMethod)}` : '';
 
     return `
       <div class="ride-item">
@@ -597,6 +599,7 @@ function renderRideRequestsList(container, requests) {
           <div class="ride-id">Request #${request.id} · ${formatDate(request.requestedTime)}</div>
           <div class="ride-route">${from} -> ${to}</div>
           ${fare ? `<div style="font-size:0.8rem;color:var(--sub);margin-top:2px">${fare}</div>` : ''}
+          ${payment ? `<div style="font-size:0.8rem;color:var(--sub);margin-top:2px">${payment}</div>` : ''}
           <button class="btn-sm" onclick="acceptRide(${request.id})" style="margin-top:8px">Accept</button>
         </div>
         <span class="ride-status status-REQUESTED">${request.rideRequestStatus || 'PENDING'}</span>
@@ -614,6 +617,7 @@ function renderRidesList(container, rides, who) {
     const statusClass = 'status-' + (ride.rideStatus || 'UNKNOWN');
     const from = formatPoint(ride.pickupLocation);
     const to = formatPoint(ride.dropOffLocation);
+    const payment = ride.paymentMethod ? `Payment: ${formatPaymentMethod(ride.paymentMethod)}` : '';
 
     const riderOtp = who === 'rider' && ride.otp
       ? `<div style="font-size:0.85rem;color:var(--accent);margin-top:4px">OTP: ${ride.otp}</div>`
@@ -629,6 +633,7 @@ function renderRidesList(container, rides, who) {
           <div class="ride-id">Ride #${ride.id} · ${formatDate(ride.createdTime)}</div>
           <div class="ride-route">📍 ${from} → 🏁 ${to}</div>
           ${ride.fare ? `<div style="font-size:0.8rem;color:var(--sub);margin-top:2px">Fare: ₹${ride.fare}</div>` : ''}
+          ${payment ? `<div style="font-size:0.8rem;color:var(--sub);margin-top:2px">${payment}</div>` : ''}
           ${extra}
         </div>
         <span class="ride-status ${statusClass}">${ride.rideStatus || 'UNKNOWN'}</span>
@@ -640,6 +645,11 @@ function formatPoint(point) {
   const [lng, lat] = point?.coordinates || [];
   if (typeof lat !== 'number' || typeof lng !== 'number') return 'N/A';
   return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+}
+
+function formatPaymentMethod(paymentMethod) {
+  if (paymentMethod === 'WALLET') return 'Wallet';
+  return 'Cash';
 }
 
 function buildProfileCard(d, type) {
