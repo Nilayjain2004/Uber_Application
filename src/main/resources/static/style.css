@@ -578,6 +578,38 @@ h3 {
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 
+.wallet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 320px);
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.wallet-label {
+  color: var(--sub);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.wallet-balance {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.wallet-topup .field {
+  margin-bottom: 10px;
+}
+
 .rides-list {
   display: flex;
   flex-direction: column;
@@ -918,7 +950,8 @@ h3 {
   }
 
   .field-row,
-  .profile-stats {
+  .profile-stats,
+  .wallet-card {
     grid-template-columns: 1fr;
   }
 

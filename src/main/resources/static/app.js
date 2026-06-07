@@ -142,6 +142,8 @@ function initSidebar(screenId, panelPrefix) {
       btn.classList.add('active');
       const panel = document.getElementById('panel-' + btn.dataset.panel);
       if (panel) panel.classList.add('active');
+      if (btn.dataset.panel === 'wallet') loadWallet('rider');
+      if (btn.dataset.panel === 'd-wallet') loadWallet('driver');
     });
   });
 }
@@ -431,6 +433,79 @@ async function loadRiderProfile() {
   } catch (e) {
     card.innerHTML = `<div class="empty-state" style="color:var(--danger)">Error: ${e.message}</div>`;
   }
+}
+
+async function loadWallet(role) {
+  const balance = document.getElementById(`${role}-wallet-balance`);
+  const list = document.getElementById(`${role}-wallet-transactions`);
+  if (!balance || !list) return;
+
+  balance.textContent = 'Loading...';
+  list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading wallet...</div>';
+
+  try {
+    const wallet = await api('GET', '/wallet/my');
+    balance.textContent = formatMoney(wallet.balance || 0);
+    renderWalletTransactions(list, wallet.transactions || []);
+  } catch (e) {
+    balance.textContent = 'Rs 0.00';
+    list.innerHTML = `<div class="empty-state" style="color:var(--danger)">Error: ${e.message}</div>`;
+  }
+}
+
+async function startRazorpayDemo(role) {
+  const amountInput = document.getElementById(`${role}-wallet-amount`);
+  const amount = parseFloat(amountInput.value);
+
+  if (Number.isNaN(amount) || amount <= 0) {
+    setStatus(`${role}-wallet-status`, 'Enter a valid amount.', 'var(--danger)');
+    return;
+  }
+
+  const paymentId = 'rzp_demo_' + Date.now();
+  setStatus(`${role}-wallet-status`, '<span class="spinner"></span> Opening Razorpay demo checkout...');
+
+  setTimeout(async () => {
+    try {
+      await api('POST', '/wallet/topup/demo', {
+        amount,
+        razorpayPaymentId: paymentId
+      });
+      amountInput.value = '';
+      setStatus(`${role}-wallet-status`, `Demo payment successful. Payment ID: ${paymentId}`);
+      showToast('Wallet updated with demo Razorpay payment.', 'success');
+      loadWallet(role);
+    } catch (e) {
+      setStatus(`${role}-wallet-status`, e.message, 'var(--danger)');
+    }
+  }, 700);
+}
+
+function renderWalletTransactions(container, transactions) {
+  if (!transactions.length) {
+    container.innerHTML = '<div class="empty-state">No wallet transactions yet.</div>';
+    return;
+  }
+
+  container.innerHTML = transactions.map(transaction => {
+    const type = transaction.transactionType || 'TRANSACTION';
+    const amount = formatMoney(transaction.amount || 0);
+    const method = transaction.transactionMethod || 'WALLET';
+    const id = transaction.transactionId ? `ID: ${transaction.transactionId}` : '';
+    return `
+      <div class="ride-item">
+        <div class="ride-icon">${type === 'CREDIT' ? '+' : '-'}</div>
+        <div class="ride-info">
+          <div class="ride-id">${type} · ${formatDate(transaction.timeStamp)}</div>
+          <div class="ride-route">${method}${id ? ' · ' + id : ''}</div>
+        </div>
+        <span class="ride-status ${type === 'CREDIT' ? 'status-ENDES' : 'status-CANCELLED'}">${amount}</span>
+      </div>`;
+  }).join('');
+}
+
+function formatMoney(amount) {
+  return `Rs ${Number(amount || 0).toFixed(2)}`;
 }
 
 function goProfile(role) {

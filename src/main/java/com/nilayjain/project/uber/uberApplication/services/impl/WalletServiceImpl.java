@@ -27,6 +27,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public Wallet addMoneyToWallet(User user, Double amount , String transactionId, Ride ride, TransactionMethod transactionMethod) {
+        validateAmount(amount);
         Wallet wallet = findByUser(user);
         wallet.setBalance(wallet.getBalance()+amount);
 
@@ -47,6 +48,7 @@ public class WalletServiceImpl implements WalletService {
     public Wallet deductMoneyFromWallet(User user, Double amount,
                                         String transactionId, Ride ride,
                                         TransactionMethod transactionMethod) {
+        validateAmount(amount);
         Wallet wallet = findByUser(user);
         wallet.setBalance(wallet.getBalance()-amount);
 
@@ -60,7 +62,7 @@ public class WalletServiceImpl implements WalletService {
                 .amount(amount)
                 .build();
 
-        wallet.getTransactions().add(walletTransaction);
+        walletTransactionService.createNewWalletTransaction(walletTransaction);
         return walletRepository.save(wallet);
     }
 
@@ -87,6 +89,12 @@ public class WalletServiceImpl implements WalletService {
         return walletRepository.findByUser(user)
                 .orElseThrow(()->new ResourceNotFoundException("Wallet not found for user with id:"+user.getId()));
 
+    }
+
+    private void validateAmount(Double amount) {
+        if (amount == null || amount <= 0) {
+            throw new RuntimeException("Amount must be greater than zero");
+        }
     }
 
 }

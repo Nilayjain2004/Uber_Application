@@ -134,6 +134,7 @@
         <aside class="sidebar">
             <button class="side-btn active" data-panel="request">🚗 Request Ride</button>
             <button class="side-btn" data-panel="my-rides">📋 My Rides</button>
+            <button class="side-btn" data-panel="wallet">Wallet</button>
             <button class="side-btn" data-panel="profile">👤 Profile</button>
         </aside>
 
@@ -203,6 +204,31 @@
                 </div>
             </div>
 
+            <!-- WALLET (RIDER) -->
+            <div class="panel" id="panel-wallet">
+                <div class="panel-header">
+                    <h2>Wallet</h2>
+                    <button class="btn-sm" onclick="loadWallet('rider')">Refresh</button>
+                </div>
+                <div class="wallet-card">
+                    <div>
+                        <div class="wallet-label">Available Balance</div>
+                        <div class="wallet-balance" id="rider-wallet-balance">Rs 0.00</div>
+                    </div>
+                    <div class="wallet-topup">
+                        <div class="field">
+                            <label>Add Money</label>
+                            <input type="number" id="rider-wallet-amount" placeholder="500" min="1" />
+                        </div>
+                        <button class="btn-primary sm" onclick="startRazorpayDemo('rider')">Pay with Razorpay Demo</button>
+                    </div>
+                </div>
+                <div id="rider-wallet-status" class="status-msg"></div>
+                <div id="rider-wallet-transactions" class="rides-list">
+                    <div class="empty-state">Click Refresh to load wallet transactions</div>
+                </div>
+            </div>
+
             <!-- PROFILE (RIDER) -->
             <div class="panel" id="panel-profile">
                 <div class="panel-header">
@@ -233,6 +259,7 @@
             <button class="side-btn" data-panel="d-requests">Ride Requests</button>
             <button class="side-btn active" data-panel="d-rides">🚦 Active Rides</button>
             <button class="side-btn" data-panel="d-history">📋 Ride History</button>
+            <button class="side-btn" data-panel="d-wallet">Wallet</button>
             <button class="side-btn" data-panel="d-profile">👤 Profile</button>
         </aside>
 
@@ -347,6 +374,31 @@
                     <button class="btn-sm" onclick="prevPage('driver')">← Prev</button>
                     <span id="driver-page-info">Page 1</span>
                     <button class="btn-sm" onclick="nextPage('driver')">Next →</button>
+                </div>
+            </div>
+
+            <!-- WALLET (DRIVER) -->
+            <div class="panel" id="panel-d-wallet">
+                <div class="panel-header">
+                    <h2>Driver Wallet</h2>
+                    <button class="btn-sm" onclick="loadWallet('driver')">Refresh</button>
+                </div>
+                <div class="wallet-card">
+                    <div>
+                        <div class="wallet-label">Available Balance</div>
+                        <div class="wallet-balance" id="driver-wallet-balance">Rs 0.00</div>
+                    </div>
+                    <div class="wallet-topup">
+                        <div class="field">
+                            <label>Add Money</label>
+                            <input type="number" id="driver-wallet-amount" placeholder="500" min="1" />
+                        </div>
+                        <button class="btn-primary sm" onclick="startRazorpayDemo('driver')">Pay with Razorpay Demo</button>
+                    </div>
+                </div>
+                <div id="driver-wallet-status" class="status-msg"></div>
+                <div id="driver-wallet-transactions" class="rides-list">
+                    <div class="empty-state">Click Refresh to load wallet transactions</div>
                 </div>
             </div>
 

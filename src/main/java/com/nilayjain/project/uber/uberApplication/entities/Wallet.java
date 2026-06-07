@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class Wallet {
     private Double balance = 0.0;
 
     @OneToMany(mappedBy = "wallet", fetch = FetchType.LAZY)
-    private List<WalletTransaction> transactions;
+    private List<WalletTransaction> transactions = new ArrayList<>();
 
 
 
